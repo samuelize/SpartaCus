@@ -23,4 +23,4 @@ for page in range(1,5) :
         rank = tr.select_one('td.number').contents[0].strip()
         title = tr.select_one('td > a.title.ellipsis').text.strip()
         artist = tr.select_one('td > a.artist.ellipsis').text
-        print(rank, title, artist)
+        print(rank, title, artist)  
