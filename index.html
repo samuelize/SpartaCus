@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <!-- Webpage Title -->
+        <title>나홀로 쇼핑몰</title>
+
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+              integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+              crossorigin="anonymous">
+
+        <!-- JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+                integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+                crossorigin="anonymous"></script>
+
+        <!-- 구글폰트 -->
+        <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+        <script type="text/javascript">
+            showExchange();
+
+            function showExchange() {
+                $.ajax({
+                    type: "GET",
+                    url: "https://api.manana.kr/exchange/rate.json",
+                    data: {},
+                    success: function (response) {
+                        for (let i = 0; i < response.length; i++) {
+                            if (response[i]['Name'] == 'USDKRW=X') {
+                                $('#exchange').text(response[i]['rate']);
+                                return;
+                            }
+                        }
+
+                    }
+                })
+            }
+
+            function isCellPhone(p) {
+                let regExp = /^(01[016789]{1}|02|0[3-9]{1}[0-9]{1})[-][0-9]{3,4}[-][0-9]{4}$/;
+                return regExp.test(p);
+            }
+
+            function order() {
+                let name = $("#order-name").val();
+                let count = $("#order-count").val();
+                let address = $("#order-address").val();
+                let phone = $("#order-phone").val();
+
+                if (name == "") {
+                    alert("이름을 입력해주세요")
+                    $("#order-name").focus()
+                    return
+                } else if (count == "") {
+                    alert("수량을 입력해주세요")
+                    $("#order-count").focus()
+                    return
+                } else if (address == "") {
+                    alert("주소를 입력해주세요")
+                    $("#order-address").focus()
+                    return
+                } else if (phone == "") {
+                    alert("휴대폰번호를 입력해주세요")
+                    $("#order-phone").focus()
+                    return
+                } else if (!isCellPhone(phone)) {
+                    alert("휴대폰번호 입력 형식이 틀립니다. \n 010-0000-0000으로 입력해주세요")
+                    return
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "/order",
+                    data: {name_give: name, count_give: count, address_give: address, phone_give: phone},
+                    success: function (response) { // 성공하면
+                        if (response["result"] == "success") {
+                            alert("주문 완료!");
+                            window.location.reload();
+                        } else {
+                            alert("주문 오류!")
+                        }
+                    }
+                })
+
+                // 주문하기 API를 사용해 여기를 채워주세요
+            }
+
+            $(document).ready(function () {
+                $("#orders-box").html("");
+
+
+                showOrders();
+            });
+
+            function showOrders() {
+                $.ajax({
+                    type: "GET",
+                    url: "/order",
+                    data: {},
+                    success: function (response) {
+                        let orders = response["orders"];
+                        console.log(orders)
+                        for (let i = 0; i < orders.length; i++) {
+                            makeOrderRow(orders[i]["name"], orders[i]["count"], orders[i]["address"], orders[i]["phone"]);
+                        }
+                    }
+                })
+                // 주문 목록보기 API 를 사용해 여기를 채워주세요
+            }
+
+            function makeOrderRow(name, count, address, phone) {
+                let tempHtml = `<tr>\
+                                <td>${name}</td>
+                                <td>${count}</td>
+                                <td>${address}</td>
+                                <td>${phone}</td>
+                              </tr>`;
+
+                $("#orders-box").append(tempHtml);
+            }
+        </script>
+
+        <style type="text/css">
+            * {
+                font-family: "Stylish", sans-serif;
+            }
+
+            h1, h5 {
+                display: inline;
+            }
+
+            .wrap {
+                width: 500px;
+                margin: auto;
+            }
+
+            .img {
+                background-image: url("data:image/jpeg;base64,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");
+                background-size: cover;
+                background-position: center;
+                width: 500px;
+                height: 300px;
+            }
+
+            .info {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+
+            .order {
+                text-align: center;
+            }
+
+            .orders {
+                margin-top: 100px;
+            }
+
+            .exchange-info {
+                color: aqua;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <div class="img"></div>
+            <div class="info">
+                <h1>양초를 팝니다</h1>
+                <h5>가격: 99,30230 원 / 개</h5>
+                <p>이 양초는 사실 특별한 힘을 가지고 있어요. 양초를 켜고 소원을 빌면 짜자잔 뭐든지 이뤄지게 된답니다. 하나 사가세요! 대나무 향이 아주 좋아요</p>
+                <div class="exchange-info">
+                    "Dollar-Korean Won 환율:"
+                    <span id="exchange">1192</span>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">주문자 이름</span>
+                    </div>
+                    <input type="text" class="form-control" id="order-name">
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="order-count">수량</label>
+                    </div>
+                    <select class="custom-select" id="order-count">
+                        <option selected value=""> -- 수량을 선택하세요 --</option>
+                        <option
+                                value="1">1
+                        </option>
+                        <option value="2">2</option>
+                    </select>
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">주소</span>
+                    </div>
+                    <input type="text" class="form-control" id="order-address">
+                </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">전화번호</span>
+                    </div>
+                    <input type="text" class="form-control" id="order-phone">
+                </div>
+                <div class="order">
+                    <button onclick="order()" type="button" class="btn btn-primary">주문하기</button>
+                </div>
+            </div>
+            <div class="orders">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th scope="col">이름</th>
+                        <th scope="col">수량</th>
+                        <th scope="col">주소</th>
+                        <th scope="col">전화번호</th>
+                    </tr>
+                    </thead>
+                    <tbody id="orders-box">
+                    <tr>
+                        <td>박르탄</td>
+                        <td>3</td>
+                        <td>스파르타국 코딩시 프론트구</td>
+                        <td>010-1234-5678</td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
